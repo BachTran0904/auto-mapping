@@ -1,0 +1,12 @@
+{
+    "Trường data": {
+        "Tài xế": ["Tài xế", "Tai xe", "tai xe", "Driver", "XE VÀ TÀI XẾ THẦU", "XE VÀ TÀI XẾ THẦU "],
+        "Quy cách sản phẩm": ["Quy cách sản phẩm", "Quy cach san pham", "Product Specification", "QCSP", "thong tin sp"],
+        "Hàng hóa": ["Hàng hóa", "Hàng Hóa", "Sản Phẩm", "San Pham", "Hang Hoa", "hang hoa", "hàng hóa", "san pham", "Products", "Inventory", "thong tin sp", "SP"],
+        "Quy cách hàng hóa": ["Quy cách hàng hóa", "Quy cach hang hoa", "Product Configuration", "Item Specification", "QCHH", "Hàng hóa", "thong tin sp"],
+        "Sold-to": ["Sold-to", "Đối tác", "Nhà phân phối", "NHÀ PHÂN PHỐI", "NPP"],
+        "Ship-to": ["Ship-to", "Đối tác", "Khách hàng", "khach hang"],
+        "Khả năng lên hàng": ["Khả năng lên hàng", "Kha nang len hang", "Loading Capacity", "Warehouse Capacity", "KNLH"],
+        "Tài khoản": ["Tài khoản", "Tai khoan", "Account", "User", "Danh sách tài khoản", "DSTK", "DANH SÁCH TÀI KHOẢN NHÀ PHÂN PH", "DANH SÁCH TÀI KHOẢN USER CAC"]
+    }
+}

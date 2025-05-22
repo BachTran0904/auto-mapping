@@ -1,0 +1,13 @@
+{
+    "Xe tải": 
+    {
+        "Xe tải": ["Xe tải", "Xe tai", "Truck", "Vehicle", "Danh sách xe", "DS xe", "XE VÀ TÀI XẾ THẦU "],
+        "Số xe": ["Số xe", "so xe", "Plate Number", "Biển số", "Vehicle No", "Số xe ( * )"],
+        "Trọng tải": ["Trọng tải", "trong tai", "Capacity", "Tải trọng", "Load Capacity"],
+        "Đăng ký": ["Đăng ký", "dang ky", "Registration", "Reg Date"],
+        "Tối thiểu": ["Tối thiểu", "toi thieu", "Minimum", "Min Capacity"],
+        "Tối đa": ["Tối đa", "toi da", "Maximum", "Max Capacity"],
+        "Mã loại xe": ["Mã loại xe", "ma loai xe", "Vehicle Type Code"],
+        "Tên loại xe": ["Tên loại xe", "ten loai xe", "Vehicle Type Name"]
+    }
+}
