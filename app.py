@@ -1,13 +1,9 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
-import logging
-import os
-import tempfile
-import subprocess
+import logging, os, tempfile, subprocess, uvicorn, zipfile, requests, json
 from fastapi.responses import JSONResponse, FileResponse
 from pathlib import Path
 from typing import List
-import uvicorn
-import requests
+import create_report
 
 app = FastAPI()
 
@@ -62,8 +58,8 @@ async def upload_and_process(file: UploadFile = File(...), form: UploadFile = Fi
         )
         
     except Exception as e:
-        # Clean up if something went wrong
-        os.unlink(temp_file_path)
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
         if temp_file_form_path and os.path.exists(temp_file_form_path):
             os.unlink(temp_file_form_path)
         logger.error(f"Error in processing: {str(e)}")
@@ -74,6 +70,25 @@ async def getOutput():
     output = "Form.xlsx"
     return output
 
+@app.post("/report")
+async def compileReport(proccessed: UploadFile = File(...), report_form: UploadFile = File(...)):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
+        content = await proccessed.read()
+        temp_file.write(content)
+        temp_file_path = temp_file.name
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_report_file:
+        content = await report_form.read()  # <-- fix here
+        temp_report_file.write(content)
+        temp_report_file_path = temp_report_file.name
+
+    response = create_report.create_report(temp_file_path, temp_report_file_path)
+    
+    return FileResponse(
+        response,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="report.xlsx"
+    )
 
 # Add this block to run the application
 if __name__ == "__main__":

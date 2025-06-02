@@ -25,25 +25,37 @@ mappings_attribute = load_mappings("attribute.json")
 mappings_header = load_mappings("attribute_header.json")
 mappings_full = load_mappings("attribute_sheet.json")
 
-def process_dify_api_output(input, sheet):
+filepath = "Raw.xlsx"
+filepath2 = "Raw2.xlsx"
+formpath = "Form.xlsx"
+
+def process_dify_api_output(input, source):
     global fields_collumn
+    header = []
+
+    header_row = next(source.iter_rows(min_row=1, max_row=1, values_only=True))
+    for cell in header_row:
+        if cell is not None: header.append(cell)
 
     lines = input.split('\n')
+
     for line in lines:
         # Bỏ qua các dòng không phải dữ liệu
         if line.strip() == "I cannot find a suitable pair." or line.strip() == "I cannot find a suitable attribute.":
             continue
 
         # Dòng dạng: Category: Attribute: Value
-        parts = line.split(':')
-        if len(parts) >= 3:
+        parts = line.split(': ')
+        if len(parts) >= 4:
             # Loại bỏ khoảng trắng thừa ở mỗi phần
             category = parts[0].strip()
             attribute = parts[1].strip()
             origin = parts[2].strip()
+            title = parts[3].strip()
 
-            # Bạn muốn lưu Attribute hay Value? Ở đây mình lưu Attribute
-            processed_columns[(category, attribute)] = [sheet.title, origin]
+            #if ((category, attribute) not in processed_columns) & (origin in header):
+                # Nếu cặp (category, attribute) đã tồn tại, có thể log hoặc bỏ qua
+            processed_columns[(category, attribute)] = [title, origin]
 
         else:
             # Nếu không đúng định dạng, có thể log hoặc bỏ qua
@@ -100,13 +112,17 @@ def get_target_columns(target_sheet):
                 break
     return target_columns
 
+
 def copy_data_to_target(source_sheet, target_sheet):
     global processed_columns
+    printed_errors = set()
     # Map source columns to fields
     field_columns = get_source_columns(source_sheet)
-    
+    #print(f"field_columns: {field_columns}, at page: {source_sheet.title}")
+
     # Map target columns to fields
     target_columns = get_target_columns(target_sheet)
+    #print(f"target_columns: {target_columns} at page: {target_sheet.title}")
 
     for row_idx in range(2, source_sheet.max_row + 1):  # Skip header
         target_row = target_sheet.max_row + 1
@@ -119,7 +135,10 @@ def copy_data_to_target(source_sheet, target_sheet):
                     target_cell = target_sheet.cell(row=target_row, column=target_col)
                     target_cell.value = source_cell.value
                 except Exception as e:
-                    print(f"Skipping error at row {row_idx}, attribute '{attribute}': {e}")
+                    key = (row_idx, attribute)
+                    if key not in printed_errors:
+                        print(f"Skipping error at row {row_idx}, attribute '{attribute}': {e}")
+                        printed_errors.add(key)
                     continue
 
 async def process_workbooks(source_wb, target_wb):
@@ -139,19 +158,36 @@ async def process_workbooks(source_wb, target_wb):
         print(f"Error processing data: {str(e)}")
         raise
 
-async def mapping(filepath, formated, attribute_json_path):
+def create_report(file_format):
+    global mappings_attribute
+    global processed_columns
+    file_sheet = file_format["Báo cáo"]
+    row_idx = file_sheet.max_row + 1
+    for (category, attribute), ((source_sheet_name, source_column)) in processed_columns.items():
+        # Instead of incrementing row_idx here, do it after actual processing
+        file_sheet.cell(row=row_idx, column=2, value=category)          
+        file_sheet.cell(row=row_idx, column=1, value=attribute)
+        
+        # Now increment row_idx after processing the row
+        row_idx += 1
+
+
+async def mapping(filepath, formated):
     try:
         #for filepath in filepaths:
-        mappings = load_mappings(attribute_json_path)
         file_khach_hang = load_workbook(filepath, data_only=False)
         file_format = load_workbook(formated)
 
         await process_workbooks(file_khach_hang, file_format)
             
         # Save and return the formatted file path
+
         file_format.save(formated)
+
+        create_report(file_format)
         
-        print(f"Successfully copied data from {filepath} to {formated}")
+        file_format.save(formated)
+
         return formated
 
     except Exception as e:
@@ -165,7 +201,7 @@ if __name__ == "__main__":
     args = parser.parse_args()    
 
     try:
-        asyncio.run(mapping(args.temp_file_path, args.temp_file_form_path, "attribute.json"))
+        asyncio.run(mapping(args.temp_file_path, args.temp_file_form_path))
     except Exception as e:
         print(f"Error during processing: {str(e)}")
         sys.exit(1)

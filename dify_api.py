@@ -11,19 +11,23 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def get_answer_from_dify(headers: str, title: str):
     headers_str = ", ".join(headers)
+    prompt = "prompt.yaml"
     query = f"""
+
+    Objective:
+    Map each provided term to the most appropriate attribute and corresponding category using the `mapping_data.txt` knowledge base, by following the steps below.
+
     Mapping Attributes to Categories — Enhanced Instructions
 
     For each term in the provided list ({headers_str}), follow these steps:
 
     Step-by-Step Process:
     1. Attribute Mapping:
+    If the finding attribute with its corresponding category has already been mapped for a previous term, then for any subsequent terms that could also map to this same attribute, skip them and do not map again.
 
     Search through the mapping_data.txt knowledge base chunk by chunk.
 
     Identify the most correct attribute for the given term with a confidence level over 0.7.
-
-    If the finding attributes has been found, discard duplicates.
 
     If no suitable attribute is found, respond with:
 
@@ -33,13 +37,13 @@ def get_answer_from_dify(headers: str, title: str):
 
     Once an attribute is identified, find the most appropriate main category from the same chunk.
 
-    If the attribute is related to "{title}", do not map directly to a category named exactly "{title}". Instead, map it to a broader main category representing a higher-level grouping available in the chunk.
-
     The attribute and category must co-exist in the same chunk to be considered a valid pair.
 
     3. Verification by Chunk:
 
     For each term, fully verify the current chunk before moving on to the next.
+
+    Make sure that the attribute-category is found within the same chunk, if the pair is not in the same chunk. It is invalid, and need to be redo.
 
     If no valid attribute-category pair is found in the current chunk, proceed to the next chunk.
 
@@ -51,10 +55,23 @@ def get_answer_from_dify(headers: str, title: str):
 
     "I cannot find a suitable pair."
 
-    Output Format:
+    5. Exception:
+
+    If the pair `Hàng hóa: Mã hàng` is found during mapping:
+
+    Only output this specific pair instead: Quy cách hàng hóa: Mã hàng hóa: <original term>, and Hàng hóa: Mã hàng: <original term>.
+
+    
+    Ignore and override any other logic for this exception.
+
+    6. Output Format:
     For each term, output only the first valid attribute-category pair found, in this exact, and only format:
-    category: attribute: original attribute
-    If no pair is found, output the corresponding message exactly as above.
+
+    category: attribute: original attribute: {title}
+
+    adding {title} at the end of the line, where {title} is the name of the sheet.
+
+    If no pair is found, output the corresponding message exactly as above.    
     """
 
 
